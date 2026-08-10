@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'Kellytechcoder/bellefood-backend'
+        DOCKER_IMAGE = 'kellytechcoder/bellefood-backend'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
@@ -15,24 +15,33 @@ pipeline {
             }
         }
 
+        stage('Firebase Setup') {
+            steps {
+                withCredentials([
+                    file(
+                        credentialsId: 'firebase-service-account',
+                        variable: 'FIREBASE_KEY'
+                    )
+                ]) {
+                    bat '''
+                        if not exist src\\main\\resources\\firebase mkdir src\\main\\resources\\firebase
+                        copy /Y "%FIREBASE_KEY%" "src\\main\\resources\\firebase\\serviceAccountKey.json"
+                    '''
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 bat 'mvnw.cmd clean package -DskipTests'
             }
         }
 
-     stage('Test') {
-         steps {
-             bat 'mvnw.cmd test -e'
-         }
-         post {
-             always {
-                 bat 'dir target\\surefire-reports'
-                 bat 'type target\\surefire-reports\\*.txt'
-                 junit 'target/surefire-reports/*.xml'
-             }
-         }
-     }
+        stage('Test') {
+            steps {
+                bat 'mvnw.cmd test'
+            }
+        }
 
         stage('Docker Build') {
             steps {
@@ -59,8 +68,12 @@ pipeline {
     }
 
     post {
+        always {
+            junit 'target/surefire-reports/*.xml'
+        }
+
         success {
-            echo 'BelleFood backend CI/CD pipeline completed successfully!'
+            echo 'BelleFood backend pipeline completed successfully!'
         }
 
         failure {
