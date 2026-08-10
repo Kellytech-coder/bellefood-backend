@@ -1,4 +1,5 @@
 pipeline {
+
     agent any
 
     environment {
@@ -15,30 +16,6 @@ pipeline {
             }
         }
 
-        stage('Check Docker') {
-            steps {
-                bat 'where docker'
-                bat 'docker --version'
-            }
-        }
-
-
-        stage('Firebase Setup') {
-            steps {
-                withCredentials([
-                    file(
-                        credentialsId: 'firebase-service-account',
-                        variable: 'FIREBASE_KEY'
-                    )
-                ]) {
-                    bat '''
-                        if not exist src\\main\\resources\\firebase mkdir src\\main\\resources\\firebase
-                        copy /Y "%FIREBASE_KEY%" "src\\main\\resources\\firebase\\serviceAccountKey.json"
-                    '''
-                }
-            }
-        }
-
         stage('Build') {
             steps {
                 bat 'mvnw.cmd clean package -DskipTests'
@@ -51,34 +28,31 @@ pipeline {
             }
         }
 
-       stage('Docker Build') {
-           steps {
-               bat 'docker build -t kellytechcoder/bellefood-backend:8 .'
-               bat 'docker tag kellytechcoder/bellefood-backend:8 kellytechcoder/bellefood-backend:latest'
-           }
-       }
-
-       stage('Docker Push') {
-           steps {
-               withCredentials([
-                   usernamePassword(
-                       credentialsId: 'dockerhub-credentials',
-                       usernameVariable: 'DOCKER_USERNAME',
-                       passwordVariable: 'DOCKER_PASSWORD'
-                   )
-               ]) {
-                   bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
-                   bat 'docker push kellytechcoder/bellefood-backend:8'
-                   bat 'docker push kellytechcoder/bellefood-backend:latest'
-               }
-           }
-       }
-
-    post {
-        always {
-            junit 'target/surefire-reports/*.xml'
+        stage('Docker Build') {
+            steps {
+                bat 'docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% .'
+                bat 'docker tag %DOCKER_IMAGE%:%IMAGE_TAG% %DOCKER_IMAGE%:latest'
+            }
         }
 
+        stage('Docker Push') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
+                    bat 'docker push %DOCKER_IMAGE%:%IMAGE_TAG%'
+                    bat 'docker push %DOCKER_IMAGE%:latest'
+                }
+            }
+        }
+    }
+
+    post {
         success {
             echo 'BelleFood backend pipeline completed successfully!'
         }
