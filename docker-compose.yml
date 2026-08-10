@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  bellefood-backend:
+    build: .
+    container_name: bellefood-backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

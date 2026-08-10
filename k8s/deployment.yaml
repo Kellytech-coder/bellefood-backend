@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: bellefood-backend
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: bellefood-backend
+
+  template:
+    metadata:
+      labels:
+        app: bellefood-backend
+
+    spec:
+      containers:
+        - name: bellefood-backend
+
+          image: bellefood-backend:latest
+
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
