@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'Kellytechcoder/bellefood-backend'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
     stages {
 
         stage('Checkout') {
@@ -10,16 +15,49 @@ pipeline {
             }
         }
 
-       stage('Build') {
-           steps {
-               bat 'mvnw.cmd clean package -DskipTests'
-           }
-       }
+        stage('Build') {
+            steps {
+                bat 'mvnw.cmd clean package -DskipTests'
+            }
+        }
 
-       stage('Test') {
-           steps {
-               bat 'mvnw.cmd test'
-           }
-       }
+        stage('Test') {
+            steps {
+                bat 'mvnw.cmd test'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                bat 'docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% .'
+                bat 'docker tag %DOCKER_IMAGE%:%IMAGE_TAG% %DOCKER_IMAGE%:latest'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
+                    bat 'docker push %DOCKER_IMAGE%:%IMAGE_TAG%'
+                    bat 'docker push %DOCKER_IMAGE%:latest'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'BelleFood backend CI/CD pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'BelleFood backend pipeline failed.'
+        }
     }
 }
