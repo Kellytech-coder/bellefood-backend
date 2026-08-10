@@ -10,16 +10,16 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                bat 'mvnw.cmd clean package -DskipTests'
-            }
-        }
+       stage('Build') {
+           steps {
+               bat 'mvnw.cmd clean package -DskipTests'
+           }
+       }
 
-        stage('Test') {
-            steps {
-                bat 'mvnw.cmd test'
-            }
-        }
+       stage('Test') {
+           steps {
+               bat 'mvnw.cmd test'
+           }
+       }
     }
 }
