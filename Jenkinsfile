@@ -28,13 +28,20 @@ pipeline {
             }
         }
 
-       stage('Docker Check') {
-           steps {
-               bat 'where docker'
-               bat 'docker --version'
-               bat 'docker ps'
-           }
-       }
+        stage('Docker Check') {
+            steps {
+                bat 'where docker'
+                bat 'docker --version'
+                bat 'docker ps'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                bat 'docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% .'
+                bat 'docker tag %DOCKER_IMAGE%:%IMAGE_TAG% %DOCKER_IMAGE%:latest'
+            }
+        }
 
         stage('Docker Push') {
             steps {
