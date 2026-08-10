@@ -22,7 +22,7 @@ pipeline {
             }
         }
 
-        nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+
         stage('Firebase Setup') {
             steps {
                 withCredentials([
@@ -51,29 +51,28 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
-            steps {
-                bat 'docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% .'
-                bat 'docker tag %DOCKER_IMAGE%:%IMAGE_TAG% %DOCKER_IMAGE%:latest'
-            }
-        }
+       stage('Docker Build') {
+           steps {
+               bat 'docker build -t kellytechcoder/bellefood-backend:8 .'
+               bat 'docker tag kellytechcoder/bellefood-backend:8 kellytechcoder/bellefood-backend:latest'
+           }
+       }
 
-        stage('Docker Push') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-credentials',
-                        usernameVariable: 'DOCKER_USERNAME',
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )
-                ]) {
-                    bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
-                    bat 'docker push %DOCKER_IMAGE%:%IMAGE_TAG%'
-                    bat 'docker push %DOCKER_IMAGE%:latest'
-                }
-            }
-        }
-    }
+       stage('Docker Push') {
+           steps {
+               withCredentials([
+                   usernamePassword(
+                       credentialsId: 'dockerhub-credentials',
+                       usernameVariable: 'DOCKER_USERNAME',
+                       passwordVariable: 'DOCKER_PASSWORD'
+                   )
+               ]) {
+                   bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
+                   bat 'docker push kellytechcoder/bellefood-backend:8'
+                   bat 'docker push kellytechcoder/bellefood-backend:latest'
+               }
+           }
+       }
 
     post {
         always {
