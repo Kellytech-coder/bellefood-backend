@@ -21,11 +21,16 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                bat 'mvnw.cmd test'
-            }
-        }
+      stage('Test') {
+          steps {
+              bat 'mvnw.cmd test -e'
+          }
+          post {
+              always {
+                  junit 'target/surefire-reports/*.xml'
+              }
+          }
+      }
 
         stage('Docker Build') {
             steps {
