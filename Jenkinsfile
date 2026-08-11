@@ -43,22 +43,15 @@ pipeline {
             }
         }
 
-        stage('Docker Push') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-credentials',
-                        usernameVariable: 'DOCKER_USERNAME',
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )
-                ]) {
-                    bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
-                    bat 'docker push %DOCKER_IMAGE%:%IMAGE_TAG%'
-                    bat 'docker push %DOCKER_IMAGE%:latest'
-                }
-            }
-        }
-    }
+       stage('Docker Hub Check') {
+           steps {
+               bat '''
+                   docker version
+                   docker info
+                   curl -I https://registry-1.docker.io/v2/
+               '''
+           }
+       }
 
     post {
         success {
