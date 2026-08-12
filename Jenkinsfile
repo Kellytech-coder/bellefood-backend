@@ -16,15 +16,11 @@ pipeline {
             }
         }
 
-
-
-            stages {
-                stage('Build') {
-                    steps {
-                        sh './mvnw clean package'
-                    }
-                }
+        stage('Build') {
+            steps {
+                bat 'mvnw.cmd clean package'
             }
+        }
 
         stage('Test') {
             steps {
